@@ -12,6 +12,7 @@ Then install the required dependencies
 
 ```sh
 go get go get github.com/labstack/echo
+go get go get github.com/mattn/go-sqlite3
 ```
 
 NOTE: The project source code is stored outside the `go/` directory. For the
