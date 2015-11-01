@@ -31,7 +31,7 @@ sqlite3 $DATABASE 'INSERT INTO users (username) VALUES ("carol@gmail.com")'
 
 
 # Create a table for links and add some test data.
-sqlite3 $DATABASE 'CREATE TABLE links (id INTEGER PRIMARY KEY AUTOINCREMENT, url STRING, user_id INT, FOREIGN KEY (user_id) REFERENCES users(id))'
+sqlite3 $DATABASE 'CREATE TABLE links (id INTEGER PRIMARY KEY AUTOINCREMENT, url STRING, last_click DATETIME, user_id INT, FOREIGN KEY (user_id) REFERENCES users(id))'
 
 # Unregistered links
 sqlite3 $DATABASE 'INSERT INTO links (url, user_id) VALUES ("http://foobar.com", 0)'
