@@ -130,9 +130,48 @@ func get_link(c *echo.Context) error {
 		Link Link `json:"link"`
 	}
 
-	response := LinkResponse{Link: link}
+	defer row.Close()
 
+	response := LinkResponse{Link: link}
 	return c.JSON(http.StatusOK, response)
+}
+
+
+func create_link(c *echo.Context) error {
+
+  type LinkParams struct {
+    Url string    `json:"url"`
+    UserId string `json:"user_id"`
+  }
+
+  params := &LinkParams{}
+
+  if err := c.Bind(params); err != nil {
+    return err
+  }
+
+  result, _ := db.Exec("INSERT INTO links (url, user_id) VALUES ($1, $2)", params.Url, params.UserId)
+
+  id, _ := result.LastInsertId()
+
+  rows, _ := db.Query("SELECT id, url FROM links WHERE id=$1 LIMIT 1", id)
+
+  rows.Next()
+
+  var uid int
+  var url string
+  rows.Scan(&uid, &url)
+
+  link := Link{Id: uid, Url: url, Key: shortly.Encode(uid)}
+
+  type LinkResponse struct {
+    Link Link `json:"link"`
+  }
+
+  defer rows.Close()
+
+  response := LinkResponse{Link: link}
+  return c.JSON(http.StatusCreated, response)
 }
 
 
@@ -221,6 +260,7 @@ func main() {
 	e.Get("/users/:user_id", get_user)
 
 	e.Get("/links/:link_id", get_link)
+	e.Post("/links", create_link)
 
 	e.Get("/go/:key", redirect)
 
