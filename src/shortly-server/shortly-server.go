@@ -11,6 +11,8 @@ import (
   "github.com/rs/cors"
 
   "strconv"
+	"time"
+	"log"
 
   "shortly"
 )
@@ -30,6 +32,7 @@ type Link struct {
   Id int        `json:"id"`
   Url string    `json:"url"`
   Key string    `json:"key"`
+	LastClick time.Time   `json:"last_click"`
 }
 
 
@@ -112,7 +115,7 @@ func get_user(c *echo.Context) error {
 func get_link(c *echo.Context) error {
 	// Query the database for the specified user.
 	id := c.Param("link_id")
-	row, _ := db.Query("SELECT id, url FROM links WHERE id=$1 LIMIT 1", id)
+	row, _ := db.Query("SELECT id, url, last_click FROM links WHERE id=$1 LIMIT 1", id)
 
 	// TODO: Return NOT FOUND if no rows are returned.
 
@@ -121,12 +124,13 @@ func get_link(c *echo.Context) error {
 
 	var uid int
 	var url string
+	var lastClick time.Time
 
-	row.Scan(&uid, &url)
+	row.Scan(&uid, &url, &lastClick)
 
 	// Initialize a link object. Use the `Encode` function to base-62
 	// encode the link id.
-	link := Link{Id: uid, Url: url, Key: shortly.Encode(uid)}
+	link := Link{Id: uid, Url: url, LastClick: lastClick, Key: shortly.Encode(uid)}
 
 	// For ember-data compatibility we need to construct a response that
 	// contains a `user` object.
@@ -243,8 +247,13 @@ func redirect(c *echo.Context) error {
 
 	var url string
 	row.Scan(&url)
+	row.Close()
 
-	defer row.Close()
+  _, err := db.Exec("UPDATE links SET last_click=datetime('now') WHERE id=$1", strconv.Itoa(id))
+
+  if err != nil {
+    log.Print(err)
+  }
 
 	c.Redirect(301, url)
 	return nil
