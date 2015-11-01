@@ -8,6 +8,8 @@ import (
   "database/sql"
   _ "github.com/mattn/go-sqlite3"
 
+  "github.com/rs/cors"
+
   "strconv"
 
   "shortly"
@@ -83,6 +85,9 @@ func main() {
 
   e.Use(mw.Logger())
   e.Use(mw.Recover())
+
+  // Enable CORS.
+  e.Use(cors.Default().Handler)
 
   // Initialize the database connection.
   db, _ = sql.Open("sqlite3", "test.db")
