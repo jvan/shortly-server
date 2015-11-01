@@ -209,6 +209,23 @@ func validate_user(c *echo.Context) error {
 
 }
 
+func redirect(c *echo.Context) error {
+	// Get the base-62 key and decode it to get the record id.
+	key := c.Param("key")
+	id := shortly.Decode(key)
+
+	row, _ := db.Query("SELECT url FROM links WHERE id=$1 LIMIT 1", strconv.Itoa(id))
+
+	row.Next()
+
+	var url string
+	row.Scan(&url)
+
+	c.Redirect(301, url)
+
+	return nil
+}
+
 
 func main() {
   e := echo.New()
@@ -231,6 +248,8 @@ func main() {
 	e.Get("/users/:user_id", get_user)
 
 	e.Get("/links/:link_id", get_link)
+
+	e.Get("/go/:key", redirect)
 
 	e.Post("/login", validate_user)
 
