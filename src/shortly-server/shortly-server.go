@@ -158,6 +158,58 @@ func get_link(c *echo.Context) error {
 }
 
 
+func validate_user(c *echo.Context) error {
+
+  type UserParams struct {
+    Username string `json:"username"`
+    Password string `json:"password"`
+  }
+
+  params := &UserParams{}
+
+  if err := c.Bind(params); err != nil {
+    return err
+  }
+
+	// Query the database for the specified username.
+	row, _ := db.Query("SELECT id, username FROM users WHERE username=$1 LIMIT 1", params.Username)
+
+	// TODO: Return NOT FOUND if no rows are returned.
+
+	// Get first (and only) record.
+	row.Next()
+
+	var user_id int
+	var username string
+
+	row.Scan(&user_id, &username)
+
+	// Query the database for all links associated with the user.
+	rows, _ := db.Query("SELECT id FROM links WHERE user_id=$1", user_id)
+
+	links := []int{}
+
+	for rows.Next() {
+		var link_id int
+		rows.Scan(&link_id)
+		links = append(links, link_id)
+	}
+
+	// Initialize a user object.
+	user := User{Id: user_id, Name: username, Links: links}
+
+	// For ember-data compatibility we need to construct a response that
+	// contains a `user` object.
+	type UserResponse struct {
+		User User `json:"user"`
+	}
+
+	response := UserResponse{User: user}
+	return c.JSON(http.StatusOK, response)
+
+}
+
+
 func main() {
   e := echo.New()
 
@@ -179,6 +231,8 @@ func main() {
 	e.Get("/users/:user_id", get_user)
 
 	e.Get("/links/:link_id", get_link)
+
+	e.Post("/login", validate_user)
 
   e.Run(":1323")
 }
