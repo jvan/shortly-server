@@ -127,6 +127,36 @@ func get_user(c *echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
+func get_link(c *echo.Context) error {
+	// Query the database for the specified user.
+	id := c.Param("link_id")
+	row, _ := db.Query("SELECT id, url FROM links WHERE id=$1 LIMIT 1", id)
+
+	// TODO: Return NOT FOUND if no rows are returned.
+
+	// Get the first (and only) record
+	row.Next()
+
+	var uid int
+	var url string
+
+	row.Scan(&uid, &url)
+
+	// Initialize a link object. Use the `Encode` function to base-62
+	// encode the link id.
+	link := Link{Id: uid, Url: url, Key: shortly.Encode(uid)}
+
+	// For ember-data compatibility we need to construct a response that
+	// contains a `user` object.
+	type LinkResponse struct {
+		Link Link `json:"link"`
+	}
+
+	response := LinkResponse{Link: link}
+
+	return c.JSON(http.StatusOK, response)
+}
+
 
 func main() {
   e := echo.New()
@@ -147,6 +177,8 @@ func main() {
 
   e.Get("/users", get_all_users)
 	e.Get("/users/:user_id", get_user)
+
+	e.Get("/links/:link_id", get_link)
 
   e.Run(":1323")
 }
