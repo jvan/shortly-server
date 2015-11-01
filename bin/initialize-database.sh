@@ -22,6 +22,9 @@ fi
 # Create a table for users and add some test data.
 sqlite3 $DATABASE 'CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, username VARCHAR(64) NOT NULL)'
 
+# Create a user for unregistered links.
+sqlite3 $DATABASE 'INSERT INTO users (id, username) VALUES (0, "unregistered")'
+
 sqlite3 $DATABASE 'INSERT INTO users (username) VALUES ("alice@gmail.com")'
 sqlite3 $DATABASE 'INSERT INTO users (username) VALUES ("bob@gmail.com")'
 sqlite3 $DATABASE 'INSERT INTO users (username) VALUES ("carol@gmail.com")'
@@ -29,6 +32,11 @@ sqlite3 $DATABASE 'INSERT INTO users (username) VALUES ("carol@gmail.com")'
 
 # Create a table for links and add some test data.
 sqlite3 $DATABASE 'CREATE TABLE links (id INTEGER PRIMARY KEY AUTOINCREMENT, url STRING, user_id INT, FOREIGN KEY (user_id) REFERENCES users(id))'
+
+# Unregistered links
+sqlite3 $DATABASE 'INSERT INTO links (url, user_id) VALUES ("http://foobar.com", 0)'
+sqlite3 $DATABASE 'INSERT INTO links (url, user_id) VALUES ("http://example.com", 0)'
+
 
 # Alice likes search engines
 sqlite3 $DATABASE 'INSERT INTO links (url, user_id) VALUES ("http://duckduckgo.com", 1)'
