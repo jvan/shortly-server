@@ -35,30 +35,8 @@ type Link struct {
 
 type UserArray []User
 
+
 //----- Routes --------------------------------------------
-
-func ping(c *echo.Context) error {
-  return c.String(http.StatusOK, "Ok")
-}
-
-func encode_value(c *echo.Context) error {
-  // Convert the `val` parameter to an integer.
-  value := c.Param("val")
-  i, _ := strconv.Atoi(value)
-
-  // Return the base-62 encoded value.
-  return c.String(http.StatusOK, shortly.Encode(i))
-}
-
-func decode_value(c *echo.Context) error {
-  // Decode the base-62 `val` parameter.
-  value := c.Param("val")
-  i := shortly.Decode(value)
-
-  // Convert the base-10 integer to a string and return.
-  s := strconv.Itoa(i)
-  return c.String(http.StatusOK, s)
-}
 
 func get_all_users(c *echo.Context) error {
   // Query the database for all user records.
@@ -238,11 +216,6 @@ func main() {
 
   // Initialize the database connection.
   db, _ = sql.Open("sqlite3", "test.db")
-
-  e.Get("/ping", ping)
-
-  e.Get("/encode/:val", encode_value)
-  e.Get("/decode/:val", decode_value)
 
   e.Get("/users", get_all_users)
 	e.Get("/users/:user_id", get_user)
