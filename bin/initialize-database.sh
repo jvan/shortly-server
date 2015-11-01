@@ -37,7 +37,7 @@ sqlite3 $DATABASE 'INSERT INTO links (url, user_id) VALUES ("http://yahoo.com", 
 
 # Bob works on the backend
 sqlite3 $DATABASE 'INSERT INTO links (url, user_id) VALUES ("http://golang.org", 2)'
-sqlite3 $DATABASE 'INSERT INTO links (url, user_id) VALUES ("http://libstack.com/echo", 2)'
+sqlite3 $DATABASE 'INSERT INTO links (url, user_id) VALUES ("http://labstack.com/echo/", 2)'
 
 # Carol works on the frontend
 sqlite3 $DATABASE 'INSERT INTO links (url, user_id) VALUES ("http://emberjs.com", 3)'
