@@ -61,8 +61,9 @@ func get_all_users(c *echo.Context) error {
     Users UserArray `json:"users"`
   }
 
-  response := UserResponse{Users: users}
+  defer rows.Close()
 
+  response := UserResponse{Users: users}
   return c.JSON(http.StatusOK, response)
 }
 
@@ -100,6 +101,9 @@ func get_user(c *echo.Context) error {
 	type UserResponse struct {
 		User User `json:"user"`
 	}
+
+  defer row.Close()
+  defer rows.Close()
 
 	response := UserResponse{User: user}
 	return c.JSON(http.StatusOK, response)
@@ -221,9 +225,11 @@ func validate_user(c *echo.Context) error {
 		User User `json:"user"`
 	}
 
+  defer row.Close()
+  defer rows.Close()
+
 	response := UserResponse{User: user}
 	return c.JSON(http.StatusOK, response)
-
 }
 
 func redirect(c *echo.Context) error {
@@ -238,8 +244,9 @@ func redirect(c *echo.Context) error {
 	var url string
 	row.Scan(&url)
 
-	c.Redirect(301, url)
+	defer row.Close()
 
+	c.Redirect(301, url)
 	return nil
 }
 
