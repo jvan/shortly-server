@@ -23,7 +23,15 @@ var db *sql.DB  // database handle
 type User struct {
   Id int        `json:"id"`
   Name string   `json:"name"`
+	Links []int   `json:"links"`
 }
+
+type Link struct {
+  Id int        `json:"id"`
+  Url string    `json:"url"`
+  Key string    `json:"key"`
+}
+
 
 type UserArray []User
 
@@ -80,6 +88,46 @@ func get_all_users(c *echo.Context) error {
   return c.JSON(http.StatusOK, response)
 }
 
+func get_user(c *echo.Context) error {
+	// Query the database for the specified user.
+	id := c.Param("user_id")
+	row, _ := db.Query("SELECT id, username FROM users WHERE id=$1 LIMIT 1", id)
+
+	// TODO: Return NOT FOUND if no rows are returned.
+
+	// Get first (and only) record.
+	row.Next()
+
+	var user_id int
+	var username string
+
+	row.Scan(&user_id, &username)
+
+	// Query the database for all links associated with the user.
+	rows, _ := db.Query("SELECT id FROM links WHERE user_id=$1", user_id)
+
+	links := []int{}
+
+	for rows.Next() {
+		var link_id int
+		rows.Scan(&link_id)
+		links = append(links, link_id)
+	}
+
+	// Initialize a user object.
+	user := User{Id: user_id, Name: username, Links: links}
+
+	// For ember-data compatibility we need to construct a response that
+	// contains a `user` object.
+	type UserResponse struct {
+		User User `json:"user"`
+	}
+
+	response := UserResponse{User: user}
+	return c.JSON(http.StatusOK, response)
+}
+
+
 func main() {
   e := echo.New()
 
@@ -98,6 +146,7 @@ func main() {
   e.Get("/decode/:val", decode_value)
 
   e.Get("/users", get_all_users)
+	e.Get("/users/:user_id", get_user)
 
   e.Run(":1323")
 }
